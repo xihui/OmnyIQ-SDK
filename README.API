@@ -9,7 +9,7 @@ FOR INITIALIZATION & GC
  * @Param:	on_cmd_fun - callback function for all commands. When the device receives the command from management end, it will call 
  *              this callback function to handle. Both sides can arrange command format following JSON.
  *
- * @Returns:	0	- on success
+ * @Returns:	0 - on success
  *             -1 - on error
  */
 int Device_Init(struct BasicDeviceInfo_s* BasicInfo, const char* acc, ON_CMD_FUNC on_cmd_fun);
