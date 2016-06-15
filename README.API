@@ -2,18 +2,20 @@ FOR INITIALIZATION & GC
 =======================
 
 /*
- * @brief:	Initialize device resources. And as program exits， Device_Destory will be called to recycle resources
+ * @brief:	Initialize device resources. And as program exits, Device_Destory will be called to recycle resources.
  *
- * @Param:	BasicInfo - device essential information, referenced by BasiceDeviceInfo_s struct definition
- * @Param:	acc - xmpp cloud account, as program calls Send_Report function，it will send the received message to this account
- * @Param:	on_cmd_fun - callback function for all commands. As router received the command from management end， it will call this callback function   to handle. Both sides can arranged command format followed JSON.
+ * @Param:	BasicInfo - device essential information, referenced by BasicDeviceInfo_s struct definition.
+ * @Param:	acc - xmpp cloud account - when program calls Send_Report function, it will send the received message to this account.
+ * @Param:	on_cmd_fun - callback function for all commands. When the device receives the command from management end, it will call 
+ *         this callback function to handle. Both sides can arrange command format following JSON.
  *
  * @Returns:	0	- on success
- *              -1  - on error
+ *          -1 - on error
  */
 int Device_Init(struct BasicDeviceInfo_s* BasicInfo, const char* acc, ON_CMD_FUNC on_cmd_fun);
 
-Initialize device resources， this API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make sure that BasicInfo->SN will be assigned MAC value or serial number.
+Initialize device resources. This API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make 
+sure that BasicInfo->SN will be assigned a MAC value or a serial number.
 
 
 /*
@@ -42,12 +44,12 @@ FOR DATA REPORTING
  * @brief:	Send payload data to xmpp cloud account with xmpp protocol
  *
  * @Param:	payload	- dataflow to be sent 
- * @Returns:	0   - on success
- *              -1  - on fail
+ * @Returns:	0 - on success
+ *          -1 - on fail
  */
 int Send_Report(const char*payload);
 
-Send payload data to xmpp cloud account with xmpp protocol， default cloud account appointed by the second parameter of Device_Init
+Send payload data to xmpp cloud account with xmpp protocol, default cloud account appointed by the second parameter of Device_Init
 
 
 /*
@@ -57,7 +59,7 @@ Send payload data to xmpp cloud account with xmpp protocol， default cloud acco
  * @Param:	acc		- cloud account
  *
  * @Returns:	0	- on success
- *          	-1	- on fail
+ *          -1	- on fail
  */
 int Send_Report_To(const char*payload, const char *acc);
 
@@ -70,7 +72,7 @@ Send payload data to appointed xmpp cloud account with xmpp protocol
  * @Param:	report	- JSON to be sent
  *
  * @Returns:	0	- on success
- *              -1	- on fail
+ *          -1	- on fail
  */
 int Send_Report_CJSON(cJSON *report);
 
@@ -83,8 +85,8 @@ Send JSON data to xmpp cloud account with xmpp protocol
  * @Param:	report	- JSON to be sent
  * @Param:	prefix	- prefix of JSON
  *
- * @Returns:	0   - on success
- *              -1  - on fail
+ * @Returns:	0  - on success
+ *          -1  - on fail
  */
 int Send_Report_CJSON_With_Prefix(cJSON *report, char *prefix);
 
@@ -95,10 +97,10 @@ Send Combination of prefix and JSON to xmpp account with xmpp protocol
  * @brief:	Send JSON data to appointed xmpp cloud account with xmpp protocol
  *
  * @Param:	report	- JSON to be sent
- * @Param:	acc		- appointed xmpp account 
+ * @Param:	acc	- appointed xmpp account 
  *
  * @Returns:	0	- on success
- *              -1	- on fail
+ *          -1	- on fail
  */
 int Send_Report_CJSON_To(cJSON* report, char *acc);
 
@@ -112,8 +114,8 @@ Send JSON data to appointed xmpp cloud account with xmpp protocol
  * @Param:	prefix	- prefix of JSON
  * @Param:	acc	- appointed xmpp account  
  *
- * @Returns:	0   - on success
- *              -1  - on fail
+ * @Returns:	0 - on success
+ *          -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc);
 
@@ -126,14 +128,14 @@ FOR DEBUGGING
 
 /*
  * @brief:	Turn on or off the debugging function of xmpp end
- * @Param:	on - set 1 to enable debug;set 0 to disable dubug
+ * @Param:	on - set 1 to enable debug; set 0 to disable dubug
  * 
  */
 void Set_Xmpp_Log_On(int on);
  
  
 /*
- * @brief:	Waiting for xmpp account login success. After xmpp account is login successfully，this interface will return. Or it will be in a blocking state
+ * @brief:	Waiting for xmpp account login success. After logging in xmpp account successfully, this interface will return. Or it will be in a blocking state
  * @Param:	on	- set 1 to enable debug;set 0 to disable dubug
  * 
  */
