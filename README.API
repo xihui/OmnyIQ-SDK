@@ -7,7 +7,7 @@ FOR INITIALIZATION & GC
  * @Param:	BasicInfo - device essential information, referenced by BasicDeviceInfo_s struct definition.
  * @Param:	acc - xmpp cloud account - when program calls Send_Report function, it will send the received message to this account.
  * @Param:	on_cmd_fun - callback function for all commands. When the device receives the command from management end, it will call 
- *         this callback function to handle. Both sides can arrange command format following JSON.
+ *          this callback function to handle. Both sides can arrange command format following JSON.
  *
  * @Returns:	0	- on success
  *          -1 - on error
