@@ -1,4 +1,4 @@
-For Initialization & GC
+FOR INITIALIZATION & GC
 =======================
 
 /*
@@ -35,7 +35,7 @@ Garbage Collection
 
 
 
-For Data Reporting
+FOR DATA REPORTING
 ==================
 
 /*
@@ -121,7 +121,7 @@ Send Combination of prefix and JSON to appointed xmpp account with xmpp protocol
 
 
 
-For Debugging
+FOR DEBUGGING
 =============
 
 /*
