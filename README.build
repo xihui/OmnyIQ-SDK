@@ -46,7 +46,7 @@ Sources Structure
 	.
 	├── build						---  the target dir that libraries and hearder files will be installed in
 	│   ├── examples					---  
-	│   │   ├── example1					---	 a simple exampe
+	│   │   ├── example1					---  a simple exampe
 	│   │   │   ├── client.c
 	│   │   │   └── Makefile
 	│   │   └── example2					---  another simple example with two pthreads
