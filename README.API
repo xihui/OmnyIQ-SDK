@@ -1,5 +1,5 @@
-FOR INITIALIZATION & GC
-=======================
+FOR INITIALIZATION & GARBAGE COLLECTION
+=======================================
 
 /*
  * @brief:	Initialize device resources. And as program exits, Device_Destory will be called to recycle resources.
