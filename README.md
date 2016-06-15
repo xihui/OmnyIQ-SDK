@@ -1,1 +1,1 @@
-# OmnyIQ-SDK
+See README.build

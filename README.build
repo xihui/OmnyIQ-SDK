@@ -1,0 +1,69 @@
+OmnyIQ SDK
+==========
+
+	Baseed on the XMPP protocol(an instant messaging protocol), we can use OmnyIQ-SDK to connect an intelligent device to the cloud. 
+	We can know device's running state and control the device to do our commands by the cloud. Omnyiq-sdk is a smart and usefull software. 
+
+	
+Compile And Install
+===================
+		
+	A. x86 compile
+		step 1:build libraries
+			#cd OmnyIQ-SDK/src
+			#make
+			#make install
+			you will find libdevice.a in build/lib and header files in build/include
+
+		step 2:build example
+			#cd ../build/example2
+			#make
+	
+	B. cross-compile
+		step 1:set up your environment
+			#export PATH+=<your toolchain's dir>    //eg. export PATH+=/projects/hnd/tools/linux/hndtools-arm-linux-2.6.36-uclibc-4.5.3/bin
+
+		step 2:build libraries
+			#cd OmnyIQ-SDK/src
+			#HOST=arm-brcm-linux-uclibcgnueabi make
+			#make install
+			you will find libdevice.a in build/lib and header files in build/include
+
+		step 3:build example
+			#cd ../build/example2
+			#HOST=arm-brcm-linux-uclibcgnueabi make
+
+
+Sources Structure
+=================
+	.
+	├── build													---  the target dir that libraries and hearder files will be installed in
+	│   ├── examples											---  
+	│   │   ├── example1										---	 a simple exampe
+	│   │   │   ├── client.c
+	│   │   │   └── Makefile
+	│   │   └── example2										---  another simple example with two pthreads
+	│   │       ├── client_thread.c
+	│   │       └── Makefile
+	│   ├── include												---  after make install, the DeviceProfileInterface.h & cJSON.h & Debug.h 
+	│	│															 will be copied into build/include
+	│   └── lib													---  after make install, the libdevice.a will be copied into build/lib
+	├── src
+	│	├── cJSON												---  the source files to make JSON data
+	│	│   ├── cJSON.c
+	│	│   └── cJSON.h
+	│	├── Debug.h
+	│	├── DeviceProfile.c										---  the source file to use xmpp protocol
+	│	├── DeviceProfileInterface.h							---  the heaader file supplied to developers
+	│	├── Makefile
+	│	└── third_parts											---  third_parts libraries
+	│	    └── iksemel-1.4										---  source code of the xmpp library
+	├── README.build
+	├── README.API
+	└── README.md
+
+
+Library APIs
+============
+
+	See README.API
