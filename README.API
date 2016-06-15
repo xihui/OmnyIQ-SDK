@@ -45,7 +45,7 @@ FOR DATA REPORTING
  *
  * @Param:	payload	- dataflow to be sent 
  * @Returns:	0 - on success
- *          -1 - on fail
+ *             -1 - on fail
  */
 int Send_Report(const char*payload);
 
@@ -59,7 +59,7 @@ Send payload data to xmpp cloud account with xmpp protocol, default cloud accoun
  * @Param:	acc		- cloud account
  *
  * @Returns:	0	- on success
- *          -1	- on fail
+ *             -1 - on fail
  */
 int Send_Report_To(const char*payload, const char *acc);
 
@@ -72,7 +72,7 @@ Send payload data to appointed xmpp cloud account with xmpp protocol
  * @Param:	report	- JSON to be sent
  *
  * @Returns:	0	- on success
- *          -1	- on fail
+ *             -1 - on fail
  */
 int Send_Report_CJSON(cJSON *report);
 
@@ -86,7 +86,7 @@ Send JSON data to xmpp cloud account with xmpp protocol
  * @Param:	prefix	- prefix of JSON
  *
  * @Returns:	0  - on success
- *          -1  - on fail
+ *             -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix(cJSON *report, char *prefix);
 
@@ -100,7 +100,7 @@ Send Combination of prefix and JSON to xmpp account with xmpp protocol
  * @Param:	acc	- appointed xmpp account 
  *
  * @Returns:	0	- on success
- *          -1	- on fail
+ *             -1 - on fail
  */
 int Send_Report_CJSON_To(cJSON* report, char *acc);
 
@@ -115,7 +115,7 @@ Send JSON data to appointed xmpp cloud account with xmpp protocol
  * @Param:	acc	- appointed xmpp account  
  *
  * @Returns:	0 - on success
- *          -1 - on fail
+ *             -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc);
 
