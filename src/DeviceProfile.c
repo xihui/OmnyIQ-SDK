@@ -1,57 +1,65 @@
-/**
+ /**
  * @file DeviceProfile.c
- * @brief  : 实现与xmpp服务器的通信
+ * @brief  : Implement xmpp server communication
  * @author Lei Dai
  * @version lei.dai
  * @date 2016-01-05
  */
-
+ 
 /*
- *	通信流程: 
- *	//连接服务器只建立服务器指定端口的tcp连接
- *	//登录服务器在tcp连接的基础上采用帐号+密码的验证方式登录
- *  - 1. Device_Init						-----------> step 1: 设置帐号，密码，服务器地址，对端帐号等信息
- *  - 2. Device_Run	(直接调用j_connect)		-----------> step 2: 与服务器进行连接，并通信，通信流程主要体现在发起连接和登录这两个步骤中
- *     -- 2.1 iks_connect_tcp				-----------> step 2.1 : 连接服务器
- *     -- 2.2 iks_stream_new				-----------> step 2.2 : 开始登录服务器(详见登录流程)
+ *	Communication procedure: 
+ *	//Establish a tcp connection through appointed port with server
+ *	//Log in the server with account and password based on tcp connection
+ *  - 1. Device_Init						-----------> step 1: Set account，password of the sender，xmpp server address，account of the reciever，and some other information
+ *  - 2. Device_Run	(Directly call j_connect)		-----------> step 2: Connect and Communicate with server，Communication procedure is reflected in two step，Initiate connection with server and log in the server
+ *     -- 2.1 iks_connect_tcp				-----------> step 2.1 : connect with server
+ *     -- 2.2 iks_stream_new				-----------> step 2.2 : log in the server(for the details of login procedure)
  * */
 
-/*
- *	登录流程: 
- *	//服务器发给客户端的数据都要经过j_setup_filter进行过滤
- *	- 1. on_stream							-----------> step 1: 调用iks_make_auth生成登录数据包,再调用iks_send将登录数据包发送至服务器 
- *	@登录成功
- *	- 2. on_iq_auth_result					-----------> step 2: 经过filter过滤后的数据包如果符合登录成功的特征，将进入该函数进行处理
- *	@登录失败
- *	- 2. on_iq_auth_error					-----------> step 2: 经过filter过滤后的数据包如果符合登录失败的特征，将进入该函数进行处理
- *																 进入登录失败流程的帐号都被认为是未注册帐号，在该函数中将进入注册流程
+
+ /*
+ *	login procedure: 
+ *	//Data which server sent to client will be filtered through j_setup_filter function
+ *	- 1. on_stream							-----------> step 1: generate login data package using iks_make_auth，and then send login data package to the server using iks_send
+ *	@successful login 
+ *	- 2. on_iq_auth_result					-----------> step 2: if data package after filtered is suited to the character of successful login， the package will be sent to the this function
+ *	@failed login
+ *	- 2. on_iq_auth_error					-----------> step 2: if data package after filtered is suited to the character of failed login， the package will be sent to the this function
+ *   
+	The account which is enter on_iq_auth_error function will be thought as unregistered account， and it will be enter the register procedure in this function
  *																 (详见注册流程)
  */
+ 
 
-/*
- * 注册流程
- * //注册成功后，再次发起登录流程
- * - 注册分两个步骤:
- * - 1. iks_make_reg1						-----------> step 1: 调用该函数生成注册1数据包，发往服务器。该数据包的目的是向服务器询问注册格式
- *   															 服务器返回的注册格式会在on_iq_result_reg1函数中进行处理
- * - 2. iks_make_reg2						-----------> step 2: 调用该函数生成注册2数据包，发往服务器。该数据包的目的是向服务器正式注册
- *   															 服务器返回的注册格式会在on_iq_result_reg2函数中进行处理
+ /*
+ * register procedure
+ * //after register successfully， it will initiate login procedure again
+ * - two steps in register:
+ * - 1. iks_make_reg1						-----------> step 1: generate data-1 registered package using this function，and then send it to the server. The purpose of this data-1 package is asking for register format from server
+ *   														
+	register format returned from server will be handled inon_iq_result_reg1
+ * - 2. iks_make_reg2						-----------> step 2: generate data-2 registered package using this function，and then send it to the server. The purpose of this data-2 package is registered normally from server
+ *   															 
+ register format returned from server will be handled inon_iq_result_reg2
  * */
-
-/*
- * 聊天（信息交互）机制
- * //登录成功后，可以收到类似于QQ聊天一样的信息,处理流程见on_msg函数
- * 主要处理2种格式的聊天消息
- * @前缀为“cmd:”开头的消息，其剩余部分会被当作linux命令来处理，并返回执行结果
- * @JSON格式的消息，是用户自定义的消息，具体的处理方式由Device_Init传入的on_cmd_func函数由用户自己来处理。
- *    该JSON格式需要满足的基本格式是：
+ 
+ 
+ 
+ /*
+ * Chat mechanism(information interaction)
+ * //after log in successfully，it will receive some message similar to QQ chat message. you can see on_msg function to get handle procedure
+ * mainly handle two format Chat message
+ * @prefix of message with “cmd:”，the remain part will be regarded as linux command to be handled， and it will return result
+ * @message of JSON format，user defined，its handle method is also defined by userself
+ *    basic format of JSON：
  *    {
  *		"cmd" : "xxx",
- *		"params" : {						-----------> params结构中的具体内容由用户自行定义零至多个
+ *		"params" : {						-----------> the content of params struct can be defined by user 
  *			"para" : "jjj"
  *		}
  *    }
  * */
+ 
 
 #include <stdio.h>
 #include <unistd.h>
@@ -66,12 +74,12 @@
 
 
 /*
- * 宏定义区
+ * Macro definition
  */
-/* 服务器地址 */
+/* Xmpp Sever Address */
 #define SERVER_ADDR "xmpp.siteview.com"
 //#define SERVER_ADDR "192.168.0.2"
-/* 服务器端口 */
+/* Xmpp Sever port*/
 #define SERVER_PORT (5222)
 
 #define MAX_USER_LEN (100)
@@ -80,7 +88,7 @@
 #define MAX_SERVER_LEN (100)
 
 /* 
- * 结构定义区
+ * Struct definition 
  */
 struct session {
         iksparser *prs;
@@ -107,7 +115,7 @@ struct connect_info_s
 };
 
 /* 
- * 全局变量区
+ * Global variable
  */
 pthread_mutex_t g_sess_lock;
 /* the global session */
@@ -133,12 +141,12 @@ int opt_use_plain;
 int opt_log=0;
 
 #define MAX_NO_RES_CNT (4)
-/* 用该全局变量记录ping服务器无响应次数，若超过一定次数则认为客户端掉线，主动断开连接，重新登录 */
+/* using this global variable to record the counts to ping server. If the count is more than the specified count， we will regard that xmpp client is offline. It will disconnect actively and login again. */
 int ping_no_res_cnt = 0;
 
 
 /* 
- * 函数实现区
+ * Realization of function
  */
 
 iks *
@@ -254,7 +262,7 @@ on_iq_get(struct session *sess, ikspak *pak)
 		{
 			iks *ret = NULL;
 			char *id = iks_find_attrib(x, "id");
-			//返回的包需要将from与to调换位置
+			//returned package needs to be reverse the position between from and to
 			char *to = iks_find_attrib(x, "from");
 			char *from = iks_find_attrib(x, "to");
 			ret = iks_make_ping_result(id, from, to);
@@ -265,7 +273,7 @@ on_iq_get(struct session *sess, ikspak *pak)
 	return IKS_FILTER_EAT;
 }
 
-//登陆成功
+//log in successfully
 
 /**
  * @brief  :
@@ -281,7 +289,7 @@ on_iq_auth_result (struct session *sess, ikspak *pak)
 	iks *x;
 	iks *pre;
 	iks *y;
-	//设置在线
+	//Set online
 	//iks_make_pres (enum ikshowtype show, const char *status)  //char *t(chat,away,xa,dnd,null)
 	//  char *status
 	DEBUG_INFO("Logon successed\n");
@@ -301,7 +309,7 @@ on_iq_auth_result (struct session *sess, ikspak *pak)
 			iks_send (sess->prs, my_roster);
 	}
 
-	/* 暂时把管理账户设置成初始管理账户,未来要实现的负载均衡，可修改此处 */
+	//temperately set manage account as initial manage account ， load balancing will be achived in the future, it can be modified in this area
 	strcpy(g_connect_info.remote_admin_user, g_connect_info.remote_first_user);
 	//report the basic device info to administrator
 	iks *msg = iks_make_msg(IKS_TYPE_CHAT,g_connect_info.remote_first_user, NULL);
@@ -408,7 +416,7 @@ on_stream (struct session *sess, int type, iks *node)
         return IKS_OK;
 }
 
-//登陆失败
+//failed login
 
 /**
  * @brief  :
@@ -421,12 +429,12 @@ on_stream (struct session *sess, int type, iks *node)
 int
 on_iq_auth_error (struct session *sess, ikspak *pak)
 {
-	//登陆失败，可能是未注册引起的，执行注册过程。注册过程分3步：
-	//reg1:获取注册表信息，即服务器要求的注册信息格式
-	//reg2:填写注册表单，发往服务器
-	//reg3:客户端可以选择性的完善用户注册信息，通过发送reg3得到详细表单
-	
-	//执行reg1即可
+	//login failed, may be caused by unregister， and to do register. three steps in register procedure：
+	//reg1: acquire registry keys, i.e. register format required by server
+	//reg2: fill in register table, and send to server
+	//reg3: client can choose to improve user register information, and acquire the detailed tables throungh sending reg3
+
+	//implement reg1
 	iks *x = iks_make_reg1();
 
 	iks_send(sess->prs, x);
@@ -435,7 +443,7 @@ on_iq_auth_error (struct session *sess, ikspak *pak)
 	return IKS_FILTER_EAT;
 }
 
-//获取注册表成功
+//Acquire registry successfully
 
 /**
  * @brief  :
@@ -448,7 +456,7 @@ on_iq_auth_error (struct session *sess, ikspak *pak)
 int
 on_iq_reg1_result (struct session *sess, ikspak *pak)
 {
-	//执行注册过程第二步
+	//the second step to implement register
 	iks *x = iks_make_reg2(sess->acc->user, sess->pass);
 
 	iks_send(sess->prs, x);
@@ -457,7 +465,7 @@ on_iq_reg1_result (struct session *sess, ikspak *pak)
 	return IKS_FILTER_EAT;
 }
 
-//注册成功
+//register successfully
 
 /**
  * @brief  :
@@ -470,7 +478,7 @@ on_iq_reg1_result (struct session *sess, ikspak *pak)
 int
 on_iq_reg2_result (struct session *sess, ikspak *pak)
 {
-	//注册成功执行登陆过程
+	//implement login procedure after register successfully
 	//printf("Start logon when finish registering\n");
 	//printf("[USER]:%s\n", sess->acc->user);
 	//printf("[PASSWD]:%s\n", sess->pass);
@@ -483,7 +491,7 @@ on_iq_reg2_result (struct session *sess, ikspak *pak)
 	return IKS_FILTER_EAT;
 }
 
-//注册失败
+//register failed
 
 /**
  * @brief  :
@@ -496,7 +504,7 @@ on_iq_reg2_result (struct session *sess, ikspak *pak)
 int
 on_iq_reg2_error (struct session *sess, ikspak *pak)
 {
-	//注册失败，打印失败code
+	//register failed and print failed error
 	iks *x;
 	iks *child;
 	x = pak->x;
@@ -518,21 +526,22 @@ on_iq_reg2_error (struct session *sess, ikspak *pak)
  * @Returns  :
  */
 int
-on_roster (struct session *sess, ikspak *pak)  //获取 roster之后，给其中一个人发一个 hello 的信息 。
+on_roster (struct session *sess, ikspak *pak)  //After acquire roster, it will send hello message to one of them
+
 {
 	iks *child;
 	my_roster = pak->x;
 	//sess->job_done = 1;
 	//return IKS_FILTER_EAT;
-	//找出一个联系人
+	//find a linkman
     child=iks_child(my_roster);
     child=iks_child(child);
     child=iks_next(child);
-    char *jid=iks_find_attrib(child,"jid"); //roster中的一个用户
+    char *jid=iks_find_attrib(child,"jid"); //one of roster user
     
 	if (jid)
 	{
-        /* 给该联系人发一个hello 信息 */
+        /* send hello message to this linkman */
     	iks *msg=iks_make_msg(IKS_TYPE_CHAT,jid,"hello,test msg!");
     	iks_insert_attrib (msg, "id", "msglai"); 
     	iks_send (sess->prs, msg);
@@ -541,8 +550,7 @@ on_roster (struct session *sess, ikspak *pak)  //获取 roster之后，给其中
     return IKS_FILTER_EAT;
 }
 
-//sdk 能处理的JSON格式的默认命令,目前只有与未来要实现负载均衡相关的set-remote-admin命令有效
-
+//sdk can handle default command with JSON format. Currently it is relative with set-remote-admin command of future load balancing.
 /**
  * @brief  :
  *
@@ -600,7 +608,7 @@ int do_cmd(char *cmd, char *output, long output_len)
 	FILE *res_file;
 	char cmd_buf[400] = "";
 	sprintf(cmd_buf, "%s >"TMP_RESULT_FILE, cmd);
-	/* 执行reboot命令前需要自检文件系统是否正常 */
+	//self-checking with file system before implement reboot command
 	if (strncmp(cmd, "reboot", strlen("reboot")) == 0)
 	{
 		int self_check_result = system("ls /bin/cp");
@@ -635,8 +643,8 @@ int do_cmd(char *cmd, char *output, long output_len)
 
 #define MAX_RESULT_BLOCK_LEN (20000)
 
-//处理收到的广播消息
-//由于广播消息无需客户端响应,所以广播消息都是直接当作命令来处理
+//implement received broadcast message
+//broadcast message is regarded as command to be handled，because of it not needing response of client
 int
 on_broadcast(struct session *sess, ikspak *pak) 
 {
@@ -654,8 +662,8 @@ on_broadcast(struct session *sess, ikspak *pak)
 	}
 	return IKS_FILTER_EAT;
 }
-//处理收到的聊天消息
 
+//handle received chat message 
 /**
  * @brief  :
  *
@@ -667,7 +675,7 @@ on_broadcast(struct session *sess, ikspak *pak)
 int
 on_msg (struct session *sess, ikspak *pak) 
 {
-	/* 判断ikspak 的类型 */
+	//judge types of ikspak
 	if(pak->type==IKS_PAK_MESSAGE)
 	{
 		if(pak->subtype==IKS_TYPE_CHAT)
@@ -677,12 +685,11 @@ on_msg (struct session *sess, ikspak *pak)
 			char *payload = iks_find_cdata(x, "body");
 			if (payload)
 			{
-				/* 
-				 * 1.首先判断是否shell命令 
-				 */
+				
+				 //1. firstly judge whether or not it's shell command 
 
-				/* 简单只判断内容的头4个字节是否为"cmd:"，如果是，则说明是shell命令,执行完命令后，将执行结果发回 */
-				/* 需要注意：千万不要发送不可退出的命令如不加-c参数的ping命令和不加-n参数的top命令 */
+				//simply judge whether or not that first four bytes of content is "cmd:" . if it is, it can be shell command. After implement command， returns the result
+				//Attention：do not send the command which can not be quited, i.e. ping -c or top -n
 				if (!strncmp(payload, "cmd:", strlen("cmd:")))
 				{
 					char *cmd_content = payload + strlen("cmd:");
@@ -691,9 +698,9 @@ on_msg (struct session *sess, ikspak *pak)
 					int ret = do_cmd(cmd_content, cmd_res, MAX_RESULT_BLOCK_LEN);
 
 					iks *body;
-					/* 生成消息结构 */
+					//generate structs of message
 					iks *msg=iks_make_msg(IKS_TYPE_CHAT,pak->from->full,NULL);
-					/* 必须添加id，否则对端收不到 */
+					//add id ness neccessary, or receiver can not be received
 					if (id)
 					{
 						iks_insert_attrib(msg, "id", id);
@@ -702,13 +709,14 @@ on_msg (struct session *sess, ikspak *pak)
 					{
 						iks_insert_attrib(msg, "id", "msglai");
 					}
-					/* 添加消息体 */
+					/* add message body */
+					
 					body = iks_insert(msg, "body");
 					iks_insert_cdata(body, cmd_res, 0);
 					iks_send(sess->prs, msg);
 					iks_delete (msg);
 
-					//reboot命令延后处理
+					//postpone the reboot command
 					if (strncmp(cmd_content, "reboot", strlen("reboot")) ==0 && ret == 0)
 					{
 						system("reboot");
@@ -717,33 +725,33 @@ on_msg (struct session *sess, ikspak *pak)
 				}
 
 				/* 
-				 * 2 判断是否JSON格式的命令
+				 * 2 To judge whether or nor it is JSON format command
 				 */
-				/* 解析json根节点 */
+				/* parse JSON root node */
 				cJSON *json_root = cJSON_Parse(payload);
 				cJSON *response = NULL;
 				char *str_resp = NULL;
 				int ret;
 				if (json_root)
 				{
-					/* 优先处理内部命令 */
+					/* handle internal command priorly */
 					if (on_default_func(json_root, &response) >= 0)
 					{
 						;
 					}
-					/* 其次处理Device_Init传入的命令 */
+					/* second handle command from Device_Init  */
 					else if (g_cmd_func)
 					{
 						ret = g_cmd_func(json_root, &response);
 					}
-					/* 命令处理中，如果有反馈结果 */
+					/* handle command if there is returned result */
 					if (response)
 					{
 						str_resp = cJSON_Print(response);
 						if (str_resp)
 						{
 							iks *body;
-							/* 生成消息结构 */
+							/* generate struct of message*/
 							iks *msg=iks_make_msg(IKS_TYPE_CHAT,pak->from->full,NULL);
 							if (id)
 							{
@@ -753,7 +761,7 @@ on_msg (struct session *sess, ikspak *pak)
 							{
 								iks_insert_attrib(msg, "id", "msglai");
 							}
-							/* 添加消息体 */
+							/* add message body */
 							body = iks_insert(msg, "body");
 							if (body)
 							{
@@ -782,7 +790,7 @@ on_msg (struct session *sess, ikspak *pak)
 }
 
 
-//对收到在线状态消息的处理
+//handle the received online message
 /**
  * @brief  :
  *
@@ -801,7 +809,7 @@ on_presence(struct session *sess, ikspak *pak)
     return IKS_FILTER_EAT;
 }
 
-//与服务器进行通信中的调试信息
+//debug message from communicated server
 /**
  * @brief  :
  *
@@ -818,8 +826,7 @@ on_log (struct session *sess, const char *data, size_t size, int is_incoming)
         fprintf (stderr, "[%s]\n", data);
 }
 
-//与服务器通信中最重要的步骤,设置过滤器。当调用iks_recv收到服务器发来的数据包时，会按照过滤器中的设置对数据包进行检查
-
+//the most important procedure in communication with server, set the filter. when iks_recv received the data package from server, it will follow the filter settings to check the data package.
 /**
  * @brief  :
  *
@@ -830,13 +837,13 @@ j_setup_filter (struct session *sess)
 {
         if (my_filter) iks_filter_delete (my_filter);
         my_filter = iks_filter_new ();
-		/* 对收到ping返回 */
+		/* return if received ping  */
 		iks_filter_add_rule (my_filter, (iksFilterHook *) on_iq_result, sess,
                 IKS_RULE_TYPE, IKS_PAK_IQ,
                 IKS_RULE_SUBTYPE, IKS_TYPE_RESULT,
                 IKS_RULE_ID, "ping",
                 IKS_RULE_DONE);
-		/* 对收到ping包的处理 */
+		/* handle received ping package */
 		iks_filter_add_rule (my_filter, (iksFilterHook *) on_iq_get, sess,
                 IKS_RULE_TYPE, IKS_PAK_IQ,
                 IKS_RULE_SUBTYPE, IKS_TYPE_GET,
@@ -872,28 +879,28 @@ j_setup_filter (struct session *sess)
                 IKS_RULE_SUBTYPE, IKS_TYPE_RESULT,
                 IKS_RULE_ID, "roster",
                 IKS_RULE_DONE);
-		iks_filter_add_rule (my_filter, (iksFilterHook *) on_msg, sess,  //当返回时，lailaigq@gmail.com/auth" id="roster" type="result">  执行。
+		iks_filter_add_rule (my_filter, (iksFilterHook *) on_msg, sess,  //when returns，lailaigq@gmail.com/auth" id="roster" type="result">  implement。
                 IKS_RULE_TYPE, IKS_PAK_MESSAGE,
                 IKS_RULE_SUBTYPE, IKS_TYPE_CHAT,
                 //IKS_RULE_FROM_PARTIAL, "dailei@xmpp.siteview.com",
                 //IKS_RULE_FROM_PARTIAL, "guanquan.lai@gmail.com",
                 IKS_RULE_DONE);
-		iks_filter_add_rule (my_filter, (iksFilterHook *) on_broadcast, sess,  //当返回时，lailaigq@gmail.com/auth" id="roster" type="result">  执行。
+		iks_filter_add_rule (my_filter, (iksFilterHook *) on_broadcast, sess,  //when returns，lailaigq@gmail.com/auth" id="roster" type="result">  implement。
                 IKS_RULE_TYPE, IKS_PAK_MESSAGE,
-                //IKS_RULE_SUBTYPE, IKS_TYPE_CHAT, /* 取消type="chat"的限制，以接受广播消息 */
-                IKS_RULE_FROM, SERVER_ADDR,	/* 消息来自于服务器 */
+                //IKS_RULE_SUBTYPE, IKS_TYPE_CHAT, /* cancle the limit of type="cgat" in order to receive broadcast */
+                IKS_RULE_FROM, SERVER_ADDR,	/* message from server */
                 //IKS_RULE_FROM_PARTIAL, "guanquan.lai@gmail.com",
                 IKS_RULE_DONE);
-        //当接受到 presence 请求加为好友时
+        // when accept the request to be friends from presence 
  //zbwgy718823@gmail.com" to="lailaigq@gmail.com"> xmlns:sub="google:subscribe">
-		iks_filter_add_rule (my_filter, (iksFilterHook *) on_presence, sess,  //当返回时，lailaigq@gmail.com/auth" id="roster" type="result">  执行。
+		iks_filter_add_rule (my_filter, (iksFilterHook *) on_presence, sess,  //when returns，lailaigq@gmail.com/auth" id="roster" type="result">  implement。
                 IKS_RULE_TYPE, IKS_PAK_PRESENCE,
                 IKS_RULE_SUBTYPE, IKS_TYPE_SUBSCRIBE,
                 //IKS_RULE_FROM_PARTIAL, "zbwgy718823@gmail.com",
                 IKS_RULE_DONE);
 }
 
-//与服务器进行连接
+//connect with server
 /**
  * @brief  :
  *
@@ -968,7 +975,7 @@ j_connect (char *jabber_id, char *pass, char *server, int port, int set_roster, 
 			if (sess.counter <= 0) 
 			{
 				j_error ("network timeout");
-				//连续ping服务器MAX_NO_RES_CNT次都没有响应，则认为客户端已经掉线，退出函数等待下一次重新连接
+				//if connect to server with ping of MAX_NO_RES_CNT times, we thought that the client is offline. Quit the function and wait for the next connect
 				if (ping_no_res_cnt++ >= MAX_NO_RES_CNT)
 				{
 					j_error ("need restart xmpp");
@@ -998,7 +1005,7 @@ j_connect (char *jabber_id, char *pass, char *server, int port, int set_roster, 
 	iks_parser_delete (sess.prs);
 }
 
-//等待客户端上线,参见example
+//wait for client to be online, referenced to exmaple
 /**
  * @brief  :
  */
@@ -1011,7 +1018,7 @@ void Wait_Xmpp_Logon()
 }
 
 #if 1
-//上报消息至默认对端
+//report message to the default receiver
 /**
  * @brief  :
  *
@@ -1037,7 +1044,7 @@ int Send_Report(const char* report)
 	return 0;
 }
 
-//上报消息至指定对端
+//report message to the appointed receiver
 int Send_Report_To(const char* report, const char *acc)
 {	
 	if ((!report) || (!acc) || (!acc[0]) || (!sess.logged))
@@ -1055,7 +1062,7 @@ int Send_Report_To(const char* report, const char *acc)
 	return 0;
 }
 
-//上报JSON结构的数据至对端
+//report JSON message to the receiver
 int Send_Report_CJSON_With_Prefix(cJSON* report, char *prefix)
 {
 	char *send_buf = NULL;
@@ -1092,7 +1099,7 @@ int Send_Report_CJSON_With_Prefix(cJSON* report, char *prefix)
 	return 0;
 }
 
-//上报JSON结构的数据至对端
+//report JSON message to the receiver
 int Send_Report_CJSON(cJSON* report)
 {
 	char *acc = g_connect_info.remote_admin_user;
@@ -1123,7 +1130,7 @@ int Send_Report_CJSON(cJSON* report)
 	return 0;
 }
 
-//上报JSON结构的数据至对端
+//report JSON message to the receiver
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc)
 {
 	char *send_buf = NULL;
@@ -1159,7 +1166,7 @@ int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc)
 	return 0;
 }
 
-//上报JSON结构的数据至对端
+//report JSON message to the receiver
 int Send_Report_CJSON_To(cJSON* report, char *acc)
 {
 	if ((!report) || (!acc) || (!acc[0]) || (!sess.logged))
@@ -1191,8 +1198,9 @@ int Send_Report_CJSON_To(cJSON* report, char *acc)
 #endif
 
 
-//设备初始化信息，主要需要DeviInfo信息中的SN（用于生成客户端帐号）,对端管理帐号（用于向对端上报信息）,其他信息可以随意填写非空值。注意不要超过数组长度
-//on_cmd_func用于处理用户定义的JSON命令，请参考demo程序中调用Device_Init
+
+// initialize the device information. we need SN(used to generate client account), receiver manage account(used to report the message) in DeviInfo. other information can be filled in non-null value. attention that exceed length of arrays
+//on_cmd_func is used to handle user-defined JSON command. referenced to Device_Init in demo
 /**
  * @brief  :
  *
@@ -1208,18 +1216,18 @@ int Device_Init(struct BasicDeviceInfo_s *DevInfo, const char*admin_acc, ON_CMD_
 	g_cmd_func = on_cmd_func;
 	if (DevInfo && admin_acc)
 	{
-		/* 用SN号生成用户名 */
+		/* generate username with SN*/
 		memcpy(&g_dev_info, DevInfo, sizeof(*DevInfo));
 		strncpy(g_connect_info.user, DevInfo->SN, sizeof(DevInfo->SN));
 		strcpy(g_connect_info.server, SERVER_ADDR);
-		/* 保存管理员账户 */
+		/* save manage account */
 		strcpy(g_connect_info.remote_first_user, admin_acc);
 		strcat(g_connect_info.remote_first_user, "@");
 		strcat(g_connect_info.remote_first_user, SERVER_ADDR);
-		/* 用siteview和SN号生成一个密码 */
+		/* use siteview and SN number to generate password */
 		strcpy(g_connect_info.passwd, "siteview");
 		strcat(g_connect_info.passwd, DevInfo->SN);
-		/* 生成用户名的全名，由用户名@server组成 */
+		/* generate full name of username. username@server */
 		strcpy(g_connect_info.user_full, g_connect_info.user);
 		strcat(g_connect_info.user_full, "@");
 		strcat(g_connect_info.user_full, SERVER_ADDR);
@@ -1234,7 +1242,8 @@ int Device_Init(struct BasicDeviceInfo_s *DevInfo, const char*admin_acc, ON_CMD_
 }
 
 
-//调用次函数，发起客户端向服务器的连接
+
+//connect from client to server
 /**
  * @brief  :
  *
@@ -1248,7 +1257,7 @@ int Device_Run(char* (*loop_fun)(), int loop_tv)
 	while(1)
 	{
 		j_connect (g_connect_info.user_full, g_connect_info.passwd, g_connect_info.server, g_connect_info.port, 0, loop_fun, loop_tv);
-		//如果有错误发生，则休眠10秒钟后发起下一次连接
+		//if errors occurred, sleep ten seconds and then connect again.
 		sleep(10);
 	}
 }

@@ -24,12 +24,11 @@
 
 struct BasicDeviceInfo_s
 {
-	char SN[MAX_SN_LEN];			//序列号
-	char Model[MAX_MODEL_LEN];		//型号
-	char MAC[MAX_MAC_LEN];			//MAC地址
-	char Country[MAX_COUNTRY_LEN];	//国家
-	char Location[MAX_LOCATION_LEN];//地区
-	//其他信息待添加
+	char SN[MAX_SN_LEN];			//serial number
+	char Model[MAX_MODEL_LEN];		//mode type
+	char MAC[MAX_MAC_LEN];			//MAC address
+	char Country[MAX_COUNTRY_LEN];	//country
+	char Location[MAX_LOCATION_LEN];//location
 };
 
 typedef struct BasicDeviceInfo_s BasicDeviceInfo;
@@ -39,10 +38,10 @@ typedef struct BasicDeviceInfo_s BasicDeviceInfo;
 void Set_Xmpp_Log_On(int on);
 
 /**
- * @brief  :需要用户实现的回调函数。用户需要根据收到的命令，将需要反馈的结果按照JSON格式填充好，并将JSON指针通过response返回出来即可
+ * @brief  :callback function users must realize by themselves. user need to fill the feedback results with JSON format according to received command and then returned the JSON pointer through the response
  *
- * @Param  :request - 收到的命令及参数（以json格式展现）
- * @Param  :response- 对命令进行处理后，可能需要反馈处理结果，以该指针传出
+ * @Param  :request - received command and parameter (JSON format)
+ * @Param  :response- handle the command and maybe feedback the handled results through this pointer
  *
  * @Returns  :	 0 - on success
  * 				-1 - on error
@@ -50,23 +49,23 @@ void Set_Xmpp_Log_On(int on);
 typedef int (*ON_CMD_FUNC)(cJSON *request, cJSON **response);
 
 /**
- * @brief  :用户按照Cloud_Payload的格式，组织好一段数据后，调用该接口将数据发送出去
+ * @brief  : user sends data invoking this interface after organizes data according to format of Cloud_Payload
  *
- * @Param  :payload - 待发送的数据流
+ * @Param  :payload - data flow to be sent
  *
  * @Returns  :	0	- on success
  * 				-1	- on fail
  */
 int Send_Report(const char*payload);
-//往指定账户发送消息
+//send messages to appointed account
 int Send_Report_To(const char*payload, const char *acc);
-//往默认账户发送一段JSON
+//send JSON message to appointed account
 int Send_Report_CJSON(cJSON *report);
-//在JSON结构前面添加一段前缀后，往默认账户发送
+//add some prefix to JSON message and then send it to default account
 int Send_Report_CJSON_With_Prefix(cJSON *report, char *prefix);
-//往指定账户发送JSON
+//send JSON message to appointed account
 int Send_Report_CJSON_To(cJSON* report, char *acc);
-//在JSON结构前面添加一段前缀后，往指定账户发送
+//add some prefix to JSON message and then send it to appointed account
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc);
 
 void Wait_Xmpp_Logon();
@@ -76,25 +75,26 @@ int Xmpp_Has_TLS();
 void Enable_Xmpp_TLS();
 
 /**
- * @brief  :初始化设备资源，在程序退出时需要调用Device_Destroy进行资源回收
+ * @brief  :c，Initialize device resources. And as program exits， Device_Destory will be called to recycle resources
  *
- * @Param  :BsicInfo -设备的基本信息，参见BasiceDeviceInfo_s结构体定义
- * @Param  :on_cmd_fun -所有命令的回调函数,当路由器收到管理端发来的命令后，会调用该回调函数进行处理，命令的格式按照JSON格式，双方进行约定
+ * @Param  :BasicInfo - device essential information, referenced by BasiceDeviceInfo_s struct definition
+ * @Param  :acc - xmpp cloud account, as program calls Send_Report function，it will send the received message to this account
+ * @Param  :on_cmd_fun - callback function for all commands. As router received the command from management end， it will call this callback function to handle. Both sides can arranged command format followed JSON.
  *
- * @Returns  :	0	- on success
- * 				-1	- on error
+ * @Returns  :  0   - on success
+ *              -1  - on error
  */
 int Device_Init(struct BasicDeviceInfo_s* BasicInfo, const char* acc, ON_CMD_FUNC on_cmd_fun);
 
 /**
- * @brief  :调用该接口后，程序进入接口内部进行事件循环,即等待接收命令-接收命令-处理命令的循环中
+ * @brief  :When invoking this interface, program will enter internal interface to do event loop. etc. the loop of waiting for an order-taking an order - handling an order
  *
  * @Returns  :
  */
 int Device_Run(char * (*loop_fun)(), int loop_tv);
 
 /**
- * @brief  :回收设备资源
+ * @brief  : recycle device resources
  */
 void Device_Destroy();
 #endif
