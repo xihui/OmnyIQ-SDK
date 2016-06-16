@@ -74,3 +74,24 @@ Library APIs
 ============
 
 	See README.API
+	
+	
+Debugging
+=========
+
+	Not only you can use the API "Set_Xmpp_Log_On" to analyse the stdout from console, but you can also use any kinds
+	of XMPP client(i.e spark  http://www.igniterealtime.org/projects/spark/) to reveive the device info that sent from
+	your device. 
+	
+	XMPP server info
+	
+		Server address: xmpp.siteview.com
+		Server port:	5222
+			
+	We can create a receiver account for testing on this XMPP server, and then,
+	pass the account name to Device_Ini function as the second parameter.
+	
+	For instance, the XMPP account name is "example", call Device_Ini API like this:
+	
+		Device_Init(&DevInfo, "example", NULL);
+		
