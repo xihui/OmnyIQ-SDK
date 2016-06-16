@@ -85,7 +85,7 @@ Debugging
 	
 	XMPP server info
 	
-		Server address: xmpp.siteview.com
+		Server address: xmpp.omnyiq.com
 		Server port:	5222
 			
 	We can create a receiver account for testing on this XMPP server, and then,
