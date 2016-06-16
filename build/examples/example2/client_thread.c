@@ -91,7 +91,7 @@ void *thr_fn(void *arg)
 		/* or call Send_Report_CJSON if nessesary, you should use the cJSON.h to create the CJSON Object, and free the CJSON object after call the function. Please refer to examples/test_json dir for more about how to use cJSON */
 		cJSON *j_root = cJSON_CreateObject();
 		//TODO: fill the j_root
-		Send_Report_CJSON();
+		Send_Report_CJSON(j_root);
 		cJSON_Delete(j_root);
 	}
 	return NULL;
