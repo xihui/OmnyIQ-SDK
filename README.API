@@ -49,11 +49,11 @@ FOR DATA REPORTING
  */
 int Send_Report(const char*payload);
 
-Send payload data to xmpp cloud account with xmpp protocol, default cloud account appointed by the second parameter of Device_Init
+Send payload data to xmpp cloud account with xmpp protocol, default cloud account specified by the second parameter of Device_Init
 
 
 /*
- * @brief:	Send payload data to appointed xmpp cloud account with xmpp protocol
+ * @brief:	Send payload data to specified xmpp cloud account with xmpp protocol
  *
  * @Param:	payload	- dataflow to be sent 
  * @Param:	acc		- cloud account
@@ -63,7 +63,7 @@ Send payload data to xmpp cloud account with xmpp protocol, default cloud accoun
  */
 int Send_Report_To(const char*payload, const char *acc);
 
-Send payload data to appointed xmpp cloud account with xmpp protocol
+Send payload data to specified xmpp cloud account with xmpp protocol
 
 
 /*
@@ -94,7 +94,7 @@ Send Combination of prefix and JSON to xmpp account with xmpp protocol
  
 
 /*
- * @brief:	Send JSON data to appointed xmpp cloud account with xmpp protocol
+ * @brief:	Send JSON data to specified xmpp cloud account with xmpp protocol
  *
  * @Param:	report	- JSON to be sent
  * @Param:	acc	- appointed xmpp account 
@@ -104,7 +104,7 @@ Send Combination of prefix and JSON to xmpp account with xmpp protocol
  */
 int Send_Report_CJSON_To(cJSON* report, char *acc);
 
-Send JSON data to appointed xmpp cloud account with xmpp protocol
+Send JSON data to specified xmpp cloud account with xmpp protocol
  
 
 
@@ -112,14 +112,14 @@ Send JSON data to appointed xmpp cloud account with xmpp protocol
  *
  * @Param:	report	- JSON to be sent
  * @Param:	prefix	- prefix of JSON
- * @Param:	acc	- appointed xmpp account  
+ * @Param:	acc	- specified xmpp account  
  *
  * @Returns:	0 - on success
  *             -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc);
 
-Send Combination of prefix and JSON to appointed xmpp account with xmpp protocol
+Send Combination of prefix and JSON to specified xmpp account with xmpp protocol
 
 
 
