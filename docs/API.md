@@ -1,4 +1,4 @@
-##FOR INITIALIZATION & GARBAGE COLLECTION
+## FOR INITIALIZATION & GARBAGE COLLECTION
 
 ### Device_Init
 
@@ -30,20 +30,21 @@ After invoking this interface, program will enter the internal to do infinite lo
  */
 int Device_Run(char * (*loop_fun)(), int loop_tv);
 ```
-
-
+### Device_Destroy
+Garbage Collection.
+```C
 /*
  * @brief:	Garbage Collection
  */
 void Device_Destroy();
-
-Garbage Collection
-
+```
 
 
-FOR DATA REPORTING
-==================
 
+
+## FOR DATA REPORTING
+Send payload data to xmpp cloud account with xmpp protocol, default cloud account specified by the second parameter of Device_Init
+```C
 /*
  * @brief:	Send payload data to xmpp cloud account with xmpp protocol
  *
@@ -52,10 +53,11 @@ FOR DATA REPORTING
  *             -1 - on fail
  */
 int Send_Report(const char*payload);
+```
 
-Send payload data to xmpp cloud account with xmpp protocol, default cloud account specified by the second parameter of Device_Init
-
-
+### Send_Report_To
+Send payload data to specified xmpp cloud account with xmpp protocol
+```C
 /*
  * @brief:	Send payload data to specified xmpp cloud account with xmpp protocol
  *
@@ -66,10 +68,10 @@ Send payload data to xmpp cloud account with xmpp protocol, default cloud accoun
  *             -1 - on fail
  */
 int Send_Report_To(const char*payload, const char *acc);
-
-Send payload data to specified xmpp cloud account with xmpp protocol
-
-
+```
+### Send_Report_CJSON
+Send JSON data to xmpp cloud account with xmpp protocol
+```C
 /*
  * @brief:	Send JSON data to xmpp cloud account with xmpp protocol
  *
@@ -79,10 +81,12 @@ Send payload data to specified xmpp cloud account with xmpp protocol
  *             -1 - on fail
  */
 int Send_Report_CJSON(cJSON *report);
+```
 
-Send JSON data to xmpp cloud account with xmpp protocol
+### Send_Report_CJSON_With_Prefix
+Send Combination of prefix and JSON to xmpp account with xmpp protocol
 
-
+```C
 /*
  * @brief:	Send JSON data to xmpp cloud account with xmpp protocol
  *
@@ -93,10 +97,10 @@ Send JSON data to xmpp cloud account with xmpp protocol
  *             -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix(cJSON *report, char *prefix);
-
-Send Combination of prefix and JSON to xmpp account with xmpp protocol
- 
-
+```
+### Send_Report_CJSON_To
+Send JSON data to specified xmpp cloud account with xmpp protocol
+```C
 /*
  * @brief:	Send JSON data to specified xmpp cloud account with xmpp protocol
  *
@@ -107,11 +111,11 @@ Send Combination of prefix and JSON to xmpp account with xmpp protocol
  *             -1 - on fail
  */
 int Send_Report_CJSON_To(cJSON* report, char *acc);
+```
 
-Send JSON data to specified xmpp cloud account with xmpp protocol
- 
-
-
+### Send_Report_CJSON_With_Prefix_To
+Send Combination of prefix and JSON to specified xmpp account with xmpp protocol
+```C
 /* @brief:	Send JSON data to appointed xmpp cloud account with xmpp protocol
  *
  * @Param:	report	- JSON to be sent
@@ -122,25 +126,25 @@ Send JSON data to specified xmpp cloud account with xmpp protocol
  *             -1 - on fail
  */
 int Send_Report_CJSON_With_Prefix_To(cJSON* report, char *prefix, char *acc);
-
-Send Combination of prefix and JSON to specified xmpp account with xmpp protocol
-
+```
 
 
-FOR DEBUGGING
-=============
 
+## FOR DEBUGGING
+### Set_Xmpp_Log_On
+```
 /*
  * @brief:	Turn on or off the debugging function of xmpp end
  * @Param:	on - set 1 to enable debug; set 0 to disable dubug
  * 
  */
 void Set_Xmpp_Log_On(int on);
- 
- 
+```
+### Wait_Xmpp_Logon
 /*
  * @brief:	Waiting for xmpp account login success. After logging in xmpp account successfully, this interface will return. Or it will be in a blocking state
  * @Param:	on	- set 1 to enable debug;set 0 to disable dubug
  * 
  */
 void Wait_Xmpp_Logon();
+```
