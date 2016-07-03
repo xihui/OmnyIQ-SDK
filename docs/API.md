@@ -1,7 +1,7 @@
-FOR INITIALIZATION & GARBAGE COLLECTION
-=======================================
-
-/*
+##FOR INITIALIZATION & GARBAGE COLLECTION
+```C
+/* Initialize device resources. This API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make 
+ * sure that BasicInfo->SN will be assigned a MAC value or a serial number.
  * @brief:	Initialize device resources. And as program exits, Device_Destory will be called to recycle resources.
  *
  * @Param:	BasicInfo - device essential information, referenced by BasicDeviceInfo_s struct definition.
@@ -12,20 +12,18 @@ FOR INITIALIZATION & GARBAGE COLLECTION
  * @Returns:	0 - on success
  *             -1 - on error
  */
+ 
 int Device_Init(struct BasicDeviceInfo_s* BasicInfo, const char* acc, ON_CMD_FUNC on_cmd_fun);
 
-Initialize device resources. This API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make 
-sure that BasicInfo->SN will be assigned a MAC value or a serial number.
-
-
-/*
+```
+```C
+/* After invoking this interface, program will enter the internal to do infinite loop and xmpp protocol will work regularly.
  * @brief:	When invoking this API, program will go to event loop
  *
  * @Returns:
  */
 int Device_Run(char * (*loop_fun)(), int loop_tv);
-
-After invoking this interface, program will enter the internal to do infinite loop and xmpp protocol will work regularly.
+```
 
 
 /*
