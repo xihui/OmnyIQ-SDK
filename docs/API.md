@@ -1,13 +1,17 @@
 ##FOR INITIALIZATION & GARBAGE COLLECTION
+
+### Device_Init
+
+Initialize device resources. This API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make sure that BasicInfo->SN will be assigned a MAC value or a serial number.
 ```C
-/* Initialize device resources. This API uses BasicInfo->SN as xmpp protocol login account. And before this API is called, We must make 
- * sure that BasicInfo->SN will be assigned a MAC value or a serial number.
+/* 
  * @brief:	Initialize device resources. And as program exits, Device_Destory will be called to recycle resources.
  *
  * @Param:	BasicInfo - device essential information, referenced by BasicDeviceInfo_s struct definition.
- * @Param:	acc - xmpp cloud account - when program calls Send_Report function, it will send the received message to this account.
- * @Param:	on_cmd_fun - callback function for all commands. When the device receives the command from management end, it will call 
- *              this callback function to handle. Both sides can arrange command format following JSON.
+ * @Param:	acc - xmpp cloud account - when program calls Send_Report function,
+ 			it will send the received message to this account.
+ * @Param:	on_cmd_fun - callback function for all commands. When the device receives the command from management end,
+ 			it will call this callback function to handle. Both sides can arrange command format following JSON.
  *
  * @Returns:	0 - on success
  *             -1 - on error
@@ -16,8 +20,10 @@
 int Device_Init(struct BasicDeviceInfo_s* BasicInfo, const char* acc, ON_CMD_FUNC on_cmd_fun);
 
 ```
+### Device_Run
+After invoking this interface, program will enter the internal to do infinite loop and xmpp protocol will work regularly.
 ```C
-/* After invoking this interface, program will enter the internal to do infinite loop and xmpp protocol will work regularly.
+/* 
  * @brief:	When invoking this API, program will go to event loop
  *
  * @Returns:
