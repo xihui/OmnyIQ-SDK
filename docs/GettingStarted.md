@@ -46,7 +46,7 @@ You will find libdevice.a in build/lib and header files in build/include
 	│   │       ├── client_thread.c
 	│   │       └── Makefile
 	│   ├── include						---  after make install, the DeviceProfileInterface.h & cJSON.h & Debug.h 
-	│	│						---  will be copied into build/include
+	│   │						        ---  will be copied into build/include
 	│   └── lib						---  after make install, the libdevice.a will be copied into build/lib
 	├── src
 	│	├── cJSON					---  the source files to make JSON data
