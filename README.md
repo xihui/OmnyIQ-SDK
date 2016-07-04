@@ -18,4 +18,4 @@ OmnyIQ-SDK provides simple ANSI C based APIs that allows it to be integrated wit
 Email to support@omnyiq.com
 
 ###License
-The project is licensed under LGPL.
+The project is licensed under the Apache License, Version 2.0.
